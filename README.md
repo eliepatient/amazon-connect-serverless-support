@@ -93,4 +93,4 @@ createdate: 2026-08-26T21:18:39.307Z
 
 ## Architecture
 
-![Amazon Connect Serverless Support Architecture](architecture.jpeg.jpg)
+![Amazon Connect Serverless Support Architecture](architecture2.jpg)
