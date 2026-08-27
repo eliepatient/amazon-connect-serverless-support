@@ -1,96 +1,181 @@
 # Amazon Connect Serverless Support
 
-A serverless contact center support solution built with Amazon Connect, AWS Lambda, Amazon DynamoDB, and Amazon CloudWatch.
+A serverless customer support contact center built with Amazon Connect, AWS Lambda, Amazon DynamoDB, Amazon CloudWatch, and AWS IAM.
 
 ## Project Overview
 
-This project demonstrates how AWS serverless services can be integrated to build an automated customer support workflow.
+This project demonstrates a serverless customer support workflow built on AWS.
 
-Customers call an Amazon Connect contact center and interact with an IVR. Based on the customer's selection and information, the contact flow invokes AWS Lambda functions to retrieve customer information, determine the appropriate support queue, generate a unique support reference number, and store call information in DynamoDB.
+Customers call an Amazon Connect contact center and interact with an IVR to select the type of assistance they need:
 
-CloudWatch is used for Lambda logging and troubleshooting.
+- Press 1 for Technical Support
+- Press 2 for General Support
 
-## Architecture
+Based on the customer's selection, Amazon Connect routes the call to the appropriate support queue.
 
+During the interaction, Amazon Connect invokes an AWS Lambda function that creates a unique support reference number, captures call information, and stores the support ticket in Amazon DynamoDB.
+
+The reference number is returned to Amazon Connect and announced to the caller before the call is transferred to a support agent.
+
+Amazon CloudWatch provides Lambda execution logging and troubleshooting.
+
+## Call Flow
+
+```text
 Customer Call
-↓
+      ↓
 Amazon Connect
-↓
-Contact Flow / IVR
-↓
+      ↓
+Welcome Prompt
+      ↓
+IVR - Choose Support Type
+      ↓
+ ┌──────────────┴──────────────┐
+ ↓                             ↓
+Press 1                       Press 2
+Technical Support             General Support
+ ↓                             ↓
+Technical Queue               General Queue
+ └──────────────┬──────────────┘
+                ↓
 AWS Lambda
-↓
+                ↓
+Generate CNX Reference
+                ↓
+Create Support Ticket
+                ↓
 Amazon DynamoDB
-↓
-Amazon CloudWatch
+                ↓
+Return Reference to Amazon Connect
+                ↓
+Announce Reference Number
+                ↓
+Transfer to Support Queue
+                ↓
+Support Agent
+```
 
 ## Features
 
-- Amazon Connect contact center configuration
-- IVR-based customer interaction
-- Technical Support and General Support routing
+- Amazon Connect cloud contact center
+- Interactive Voice Response (IVR)
+- Technical Support and General Support selection
+- Queue-based call routing
 - AWS Lambda integration with Amazon Connect
-- Customer lookup from DynamoDB
-- Dynamic queue selection based on support type
-- Unique support reference generation (CNX-XXXXXX)
+- Automatic support ticket/reference generation
+- Unique `CNX-XXXXXX` reference numbers
 - Caller phone number capture
-- Call date/time logging
-- DynamoDB call record storage
-- CloudWatch logging and troubleshooting
-- IAM permissions for Lambda access to DynamoDB
+- Amazon Connect Contact ID capture
+- Support type tracking
+- Ticket status tracking
+- Call creation timestamp
+- DynamoDB support ticket storage
+- Dynamic reference number returned to Amazon Connect
+- Reference number announced to the caller
+- CloudWatch execution logging and troubleshooting
+- IAM-based Lambda permissions for DynamoDB access
 
 ## AWS Services Used
 
 | Service | Purpose |
 |---|---|
-| Amazon Connect | Contact center, IVR, and call routing |
-| AWS Lambda | Serverless backend processing |
-| Amazon DynamoDB | Customer and support call data storage |
-| Amazon CloudWatch | Lambda logs and troubleshooting |
-| AWS IAM | Permissions and access control |
+| Amazon Connect | Contact center, IVR, queues, and call routing |
+| AWS Lambda | Generates support references and processes call data |
+| Amazon DynamoDB | Stores support ticket and call information |
+| Amazon CloudWatch | Lambda execution logs and troubleshooting |
+| AWS IAM | Controls Lambda access to DynamoDB and other AWS resources |
 
-## Lambda Functions
+## Support Reference Lambda
 
-### Customer Lookup
+The Lambda function is invoked by the Amazon Connect contact flow.
 
-The customer lookup Lambda retrieves customer information from the `ConnexCustomers` DynamoDB table.
+It generates a unique six-digit support reference:
 
-It can return information such as:
+```text
+CNX-575713
+```
 
-- Customer name
+The function captures and stores:
+
+- Support reference number
+- Amazon Connect Contact ID
+- Caller phone number
 - Support type
-- Appropriate support queue
+- Ticket status
+- Creation timestamp
 
-Example routing:
+A support ticket can therefore look like:
 
-`Technical support → Technical Support queue`
+```text
+referencenumber: CNX-575713
+contactId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+callernumber: +1XXXXXXXXXX
+supportType: Technical
+status: OPEN
+createdate: 2026-08-27T19:30:00.000Z
+```
 
-`General support → General Support queue`
+The Lambda function then returns the generated reference number to Amazon Connect so that it can be announced to the caller.
 
-### Support Reference
+## Monitoring and Troubleshooting
 
-The support reference Lambda generates a six-digit reference number for a support interaction.
+Amazon CloudWatch captures Lambda execution logs.
+
+The logs provide visibility into:
+
+- Amazon Connect events received by Lambda
+- Generated support reference numbers
+- DynamoDB write operations
+- Successful Lambda executions
+- Runtime errors and failed operations
 
 Example:
 
-`CNX-575713`
-
-The function also records:
-
-- Reference number
-- Caller phone number
-- Creation timestamp
-
-The information is stored in the `connexsupportcall` DynamoDB table.
-
-Example record:
-
+```text
+Amazon Connect event received
+Generated reference: CNX-575713
+Saved support ticket: CNX-575713
 ```
-referencenumber: CNX-575713
-callernumber: +15144624992
-createdate: 2026-08-26T21:18:39.307Z
+
+## Repository Structure
+
+```text
+amazon-connect-serverless-support/
+│
+├── lambda/
+│   └── support-reference/
+│       └── index.mjs
+│
+├── architecture2.jpg
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 ## Architecture
 
 ![Amazon Connect Serverless Support Architecture](architecture2.jpg)
+
+## Skills Demonstrated
+
+- Amazon Connect
+- AWS Lambda
+- Amazon DynamoDB
+- Amazon CloudWatch
+- AWS IAM
+- Node.js / JavaScript
+- Serverless Architecture
+- IVR Development
+- Contact Flow Design
+- Queue-Based Call Routing
+- AWS SDK for JavaScript
+- Cloud Troubleshooting
+
+## Future Improvements
+
+- Add ticket status updates after agent interactions
+- Add customer authentication
+- Add automated ticket notifications
+- Add CloudWatch alarms and operational metrics
+- Provision infrastructure using Terraform
+- Add CI/CD for Lambda deployments
