@@ -85,11 +85,12 @@ The information is stored in the `connexsupportcall` DynamoDB table.
 
 Example record:
 
-```text
+```
 referencenumber: CNX-575713
 callernumber: +15144624992
 createdate: 2026-08-26T21:18:39.307Z
+```
 
 ## Architecture
 
-Amazon Connect Serverless Support Architecture(architecture.jpeg.jpg)
+![Amazon Connect Serverless Support Architecture](architecture.jpeg.jpg)
